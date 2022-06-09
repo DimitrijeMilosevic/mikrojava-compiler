@@ -1,0 +1,10 @@
+program MJProgram
+{
+	// Pokazati:
+	// Kada se metoda ne zove main (ne postoji main u programu)
+	// Kada metoda ima drugaciji povratni tip (nesto sto nije void)
+	// Kada metoda ima neki parametar
+	void main() {
+		// ...
+	}
+}

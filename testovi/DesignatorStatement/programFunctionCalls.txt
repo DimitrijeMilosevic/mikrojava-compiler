@@ -1,0 +1,20 @@
+program MJProgram
+// Pokazati poziv funkcije koja nije definisana/ne postoji
+class Base {
+	bool field;
+	{
+		int method() {
+			return 1;
+		}
+	}
+}
+{
+	int foo() {
+		return 2;
+	}
+	
+	void main() Base b; {
+		foo();
+		b.methodd();
+	}
+}

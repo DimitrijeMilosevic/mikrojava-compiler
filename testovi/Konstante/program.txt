@@ -1,0 +1,11 @@
+program MJProgram
+
+const int num1 = 1, num2 = 'c', num3 = false;
+const char char1 = 1, char2 = 'c', char3 = false;
+const bool bool1 = 1, bool2 = 'c', bool3 = false;
+
+{
+	void main() {
+		// ...
+	}
+}

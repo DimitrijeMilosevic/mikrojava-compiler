@@ -1,0 +1,19 @@
+program MJProgram
+
+// Pokazati:
+// Kada Designator nije definisan/ne postoji
+// Kada tipovi nisu kompatibilni pri dodeli
+
+class Base {
+	bool field;
+	{
+	}
+}
+{
+	void main() int a; Base b; char arr[]; {
+		a = 2;
+		b.field = false;
+		arr[a] = 'c';
+		arr = null;
+	}
+}

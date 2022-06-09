@@ -1,0 +1,15 @@
+program MJProgram
+
+class Base {
+	bool field;
+	{
+	}
+}
+{
+	void main() int a; Base b; char arr[]; {
+		a++;
+		a--;
+		arr[2]--;
+		b.field++;
+	}
+}

@@ -1,0 +1,19 @@
+program MJProgram
+
+// Pokazati kada se izvodi klasa iz klase koja nije definisana
+
+class Base {
+	{
+	}
+}
+
+class Derived extends Base {
+	{
+	}
+}
+
+{
+	void main() {
+		// ...
+	}
+}

@@ -1,0 +1,16 @@
+program MJProgram
+
+{
+	void main() int dummy; {
+		do {
+			break;
+			continue;
+		} while (dummy > 0);
+		
+		switch (dummy) {
+			case 1: break; continue;
+		}
+		break;
+		continue;
+	}
+}

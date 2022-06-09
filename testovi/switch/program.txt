@@ -1,0 +1,15 @@
+program MJProgram
+// Pokazati kada ima vise case grana sa istim brojem
+{
+	
+	void main() int num1, num2; {
+		switch (num1) {
+			case 2:
+			case 3:
+			switch (num2) {
+				case 2:
+				case 3:
+			}
+		}
+	}
+}

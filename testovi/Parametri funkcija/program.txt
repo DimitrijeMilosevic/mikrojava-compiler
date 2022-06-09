@@ -1,0 +1,28 @@
+program MJProgram
+// Pokazati i kada broj stvarnih i formalnih parametra nije isti
+class Base {
+	int baseField;
+	{
+		void foo(char c, bool b, int n) {
+			
+		}
+	}
+}
+
+class Derived extends Base {
+	int derivedField;
+	{
+	}
+}
+
+{
+	void func(Base b) {
+		
+	}
+	
+	void main() char dummy; bool arr[]; Base b; Derived d; {
+		b.foo(dummy, arr[2], b.baseField);
+		b = new Derived;
+		func(d);
+	}
+}

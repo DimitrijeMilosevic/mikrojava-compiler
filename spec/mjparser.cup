@@ -1,0 +1,328 @@
+
+
+package rs.ac.bg.etf.pp1;
+
+import java_cup.runtime.*;
+import org.apache.log4j.*;
+import rs.ac.bg.etf.pp1.ast.*;
+
+parser code {:
+
+	boolean errorDetected;
+	Logger log = Logger.getLogger(getClass());
+   
+   
+    // slede redefinisani metodi za prijavu gresaka radi izmene teksta poruke
+     
+    public void report_fatal_error(String message, Object info) throws java.lang.Exception {
+      done_parsing();
+      report_error(message, info);
+    }
+  
+    public void syntax_error(Symbol cur_token) {
+        report_error("\nSintaksna greska", cur_token);
+    }
+  
+    public void unrecovered_syntax_error(Symbol cur_token) throws java.lang.Exception {
+        report_fatal_error("Fatalna greska, parsiranje se ne moze nastaviti", cur_token);
+    }
+
+    public void report_error(String message, Object info) {
+    	errorDetected = true;
+    	StringBuilder msg = new StringBuilder(message); 
+    	if (info instanceof Symbol)
+            msg.append (" na liniji ").append(((Symbol)info).left);
+        log.error(msg.toString());
+    }
+
+
+:}
+
+init with {:
+	errorDetected = false;
+:}
+
+scan with {:
+	Symbol s = this.getScanner().next_token();
+	if (s != null && s.value != null) 
+		log.info(s.toString() + " " + s.value.toString());
+	return s;
+:}
+
+terminal PROGRAM, CONST, CLASS, EXTENDS, IF, ELSE, DO, WHILE, SWITCH, CASE, BREAK, CONTINUE, RETURN, READ, PRINT, NEW, ENUM, VOID ;
+
+terminal String IDENTIFIER, BOOLCONST;
+terminal Integer NUMCONST;
+terminal Character CHARCONST;
+
+terminal PLUS, MINUS, MUL, DIV, MOD, EQUAL, NOTEQUAL, GREATER, GRTEQ, LESSER, LSSEQ, AND, OR, EQUALS, INCREMENT, DECREMENT, SEMICOLON, COMMA, DOT ;
+terminal LPAREN, RPAREN, LBRACE, RBRACE, LSQBRACKET, RSQBRACKET, QUESTIONMARK, COLON;
+
+nonterminal VarDeclList, MethodDeclList, VarDecl;
+nonterminal FormPars, StatementList, FormalParamList, FormalParamDecl, Statement;
+nonterminal Addop, ActualPars, ActualParamList;
+nonterminal Matched, Unmatched;
+
+nonterminal Assignop, Relop, Mulop, CaseStatement, MultipleStatements;
+nonterminal VarIdentDecl, VarsIdentDecl, ClassDeclList, ConstDeclList, ConstDecl, ConstIdentDecl, ConstsIdentDecl, DoNonTerminal, SwitchNonTerminal, ExtendsClassName, LBRACEAfterVarDeclList, IfNonTerminal, RParenNonTerminal, ElseNonTerminal, WhileNonTerminal, NUMCONSTNonTerminal;
+nonterminal rs.etf.pp1.symboltable.concepts.Obj ProgName, Program, ClassName, ClassDecl, MethodName, MethodDecl, Designator, DerClassName;
+nonterminal rs.etf.pp1.symboltable.concepts.Struct Type, Factor, Term, NegExpr, NormExpr, Expr1, Expr, DesignatorStatement, CondFact, CondTerm, Condition;
+
+Program ::= (Program) PROGRAM ProgName:p ConstDeclList ClassDeclList VarDeclList LBRACE MethodDeclList RBRACE;
+
+ProgName ::= (ProgName) IDENTIFIER:progName;
+
+ConstDeclList ::= (ConstDeclarations) ConstDeclList ConstDecl
+				|
+				(NoConstDecl) /* epsilon */
+				;
+
+ConstIdentDecl ::= (ConstNumIdent) IDENTIFIER:constName EQUALS NUMCONST:num
+				|
+				(ConstCharIdent) IDENTIFIER:constName EQUALS CHARCONST:ch
+				|
+				(ConstBoolIdent) IDENTIFIER:constName EQUALS BOOLCONST:bool;
+								
+ConstsIdentDecl ::= (SingleConstIdent) COMMA ConstIdentDecl
+				|
+				(ConstsIdent) ConstsIdentDecl COMMA ConstIdentDecl;
+
+ConstDecl ::= (ConstDeclaration) CONST Type:constType ConstIdentDecl SEMICOLON
+			|
+			(ConstantsDeclaration) CONST Type:constType ConstIdentDecl ConstsIdentDecl SEMICOLON;
+
+ClassDeclList ::= (ClassDeclarations) ClassDeclList ClassDecl
+				|
+				(NoClassDecl) /* epsilon */
+				;
+
+ClassDecl ::= (ClassDecl) CLASS ClassName:c LBRACE VarDeclList LBRACEAfterVarDeclList MethodDeclList RBRACE RBRACE;
+
+LBRACEAfterVarDeclList ::= (LBRACEAfterVarDeclList) LBRACE;
+
+ClassName ::= (BaseClassName) IDENTIFIER:className
+			|
+			(DerivedClassName) DerClassName EXTENDS ExtendsClassName;
+
+DerClassName ::= (DerClassName) IDENTIFIER:derivedClassName;
+
+ExtendsClassName ::= (ExtendsClassName) IDENTIFIER:baseClassName;
+
+VarDeclList ::= (VarDeclarations) VarDeclList VarDecl
+			|
+			(NoVarDecl) /* epsilon */
+			;
+
+VarIdentDecl ::= (VarIdent) IDENTIFIER:varName
+				|
+				(ArrIdent) IDENTIFIER:arrName LSQBRACKET RSQBRACKET;
+				
+VarsIdentDecl ::= (SingleVarIdent) VarIdentDecl COMMA
+				|
+				(SingleVarIdentError) error COMMA:c
+			    {: parser.report_error("Izvrsen oporavak do , u liniji " + cleft, null);  :}
+				|
+				(VarsIdent) VarsIdentDecl VarIdentDecl COMMA;
+				
+VarDecl ::= (VariableDecl) Type:varType VarIdentDecl SEMICOLON
+			|
+			(VariablesDecl) Type:varsType VarsIdentDecl VarIdentDecl SEMICOLON
+			|
+			(ErrorVarDecl) error SEMICOLON:sc
+			{: parser.report_error("Izvrsen oporavak do ; u liniji " + scleft, null);  :}
+			;
+
+Type ::= (Type) IDENTIFIER:typeName;
+
+MethodDeclList ::= (MethodDeclarations) MethodDeclList MethodDecl
+				|
+				(NoMethodDecl) /* epsilon */
+				;
+				
+MethodDecl ::= (MethodDecl) MethodName:m LPAREN FormPars RPAREN VarDeclList LBRACE StatementList RBRACE;
+			
+MethodName ::= (RetMethodName) Type:retType IDENTIFIER:methodName
+			|
+			(VoidMethodName) VOID IDENTIFIER:methodName;
+
+
+FormPars ::= (FormParams) FormalParamList
+		  |
+		  (NoFormParam) /* epsilon */
+		  ;
+		  
+FormalParamList ::= (FormalParamDecls) FormalParamList COMMA FormalParamDecl
+				|
+				(SingleFormalParamDecl) FormalParamDecl
+				;
+
+FormalParamDecl ::= (VarParam) Type:t IDENTIFIER:ident
+				|
+				(ArrParam) Type:t IDENTIFIER:ident LSQBRACKET RSQBRACKET;
+
+StatementList ::= (Statements) StatementList Statement
+				|
+				(NoStmt) /* epsilon */
+				;
+
+MultipleStatements ::= (SingleStmt) Statement:s
+					|
+					(MultipleStmts) MultipleStatements:ms Statement:s;
+			
+Statement ::= (MatchedStmt) Matched
+		   |
+		   (UnmatchedStmt) Unmatched
+		   ; 
+
+Unmatched ::= (UnmatchedIf) IfNonTerminal LPAREN Condition RParenNonTerminal Statement
+		 	|
+		 	(UnmatchedIfElse) IfNonTerminal LPAREN Condition RParenNonTerminal Matched ElseNonTerminal Unmatched
+		 	;
+
+IfNonTerminal ::= (IfNonTerminal) IF;
+
+RParenNonTerminal ::= (RParenNonTerminal) RPAREN;
+
+ElseNonTerminal ::= (ElseNonTerminal) ELSE;
+
+Matched ::= (DesignatorStmt) DesignatorStatement:ds SEMICOLON
+		   |
+		   (ErrorStmt) error SEMICOLON:l
+		   {: parser.report_error("Izvrsen oporavak do ; u liniji " + lleft, null);  :}
+		   |
+		   (DoWhileLoop) DoNonTerminal Statement:s WhileNonTerminal LPAREN Condition RPAREN SEMICOLON
+		   |
+		   (SwitchStmt) SwitchNonTerminal LPAREN Expr:e RPAREN LBRACE CaseStatement:cs RBRACE
+		   |
+		   (BreakStmt) BREAK SEMICOLON
+		   |
+		   (ContinueStmt) CONTINUE SEMICOLON
+		   |
+		   (PrintStmt) PRINT LPAREN Expr RPAREN SEMICOLON
+		   |
+		   (MultiplePrintStmts) PRINT LPAREN Expr COMMA NUMCONST RPAREN SEMICOLON
+		   |
+		   (ReturnExpr) RETURN Expr:t SEMICOLON
+		   |
+		   (ReturnNoExpr) RETURN SEMICOLON
+		   |
+		   (ReadStmt) READ LPAREN Designator:d RPAREN SEMICOLON
+		   |
+		   (MatchedStatement) IfNonTerminal LPAREN Condition RParenNonTerminal Matched ElseNonTerminal Matched
+		   |
+		   (BlockNoStmts) LBRACE RBRACE
+		   |
+		   (BlockStmts) LBRACE MultipleStatements:ms RBRACE
+		   ;
+
+DoNonTerminal ::= (DoNonTerminal) DO;
+
+WhileNonTerminal ::= (WhileNonTerminal) WHILE;
+
+SwitchNonTerminal ::= (SwitchNonTerminal) SWITCH;
+		   
+CaseStatement ::= (EmptyCaseStmt) CASE NUMCONSTNonTerminal COLON
+				| 
+				(CaseStmt) CASE NUMCONSTNonTerminal COLON MultipleStatements:ms
+				|
+				(CasesStmt) CaseStatement:cs CASE NUMCONSTNonTerminal COLON MultipleStatements:ms
+				|
+				(CasesEmptyStmt) CaseStatement:cs CASE NUMCONSTNonTerminal COLON;
+			
+NUMCONSTNonTerminal ::= (NUMCONSTNonTerminal) NUMCONST;
+
+DesignatorStatement ::= (Assignment) Designator:dest Assignop Expr:e
+					|
+					(FunctionCall) Designator:func LPAREN ActualPars RPAREN
+					|
+					(Increment) Designator:dest INCREMENT
+					|
+					(Decrement) Designator:dest DECREMENT;
+
+Condition ::= (ConditionalTerm) CondTerm:ct
+			|
+			(ConditionalTerms) Condition:c OR CondTerm:ct;
+
+CondTerm ::= (ConditionalFact) CondFact:cf 
+			|
+			(ConditionalFacts) CondTerm:ct AND CondFact:cf;
+
+CondFact ::= (CondExpr) Expr:e
+			|
+			(CondRel) Expr1:e1 Relop Expr1:e2;
+
+Expr ::= (Expression) Expr1:e
+		|
+		(ConditionalExpression) CondFact:cf QUESTIONMARK Expr1:exprY COLON Expr1:exprN;
+
+Expr1 ::= (NormalExpr) NormExpr:ne
+		|
+		(NegatedExpr) NegExpr:ne;
+		
+NormExpr ::= (AddExpr) NormExpr:te Addop Term:t
+		 |
+		 (TermExpr) Term:t
+		 ;	 
+
+NegExpr ::= (NegExpression) MINUS NormExpr:ne;
+
+Term ::= (BasicTerm) Factor:t
+		|
+		(MulTerm) Term:t Mulop Factor:f;
+
+Factor ::= (NumberConst) NUMCONST
+		|
+		(CharacterConst) CHARCONST
+		|
+		(BooleanConst) BOOLCONST
+		|
+		(Var) Designator:d
+		| 
+		(FuncCall) Designator:func LPAREN ActualPars RPAREN
+		|
+		(VarAlloc) NEW Type:t
+		|
+		(ArrayAlloc) NEW Type:t LSQBRACKET Expr RSQBRACKET
+		|
+		(ParenFactor) LPAREN Expr:e RPAREN
+		;
+		
+ActualPars ::= (Actuals) ActualParamList
+			|
+			(NoActuals) /* epsilon */
+			;
+		
+ActualParamList ::= (ActualParams) ActualParamList COMMA Expr
+				|
+				(ActualParam) Expr
+				;
+				
+Designator ::= (DesignatorIdent) IDENTIFIER:name
+			|
+			(DesignatorAttribute) Designator:d DOT IDENTIFIER:attributeName
+			|
+			(DesignatorElement) Designator:d LSQBRACKET Expr:e RSQBRACKET;
+
+Assignop ::= (Assignop) EQUALS;
+
+Relop ::= (Equalop) EQUAL
+		|
+		(Notequalop) NOTEQUAL
+		|
+		(Grtop) GREATER 
+		|
+		(Grteqop) GRTEQ
+		|
+		(Lssop) LESSER
+		|
+		(Lsseqop) LSSEQ;
+
+Addop ::= (Addoperation) PLUS
+		|
+		(Subop) MINUS;	
+
+Mulop ::= (Muloperation) MUL
+		|
+		(Divop) DIV
+		|
+		(Modop) MOD;

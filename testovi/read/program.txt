@@ -1,0 +1,16 @@
+program MJProgram
+
+class Base {
+	int field;
+	{
+	}
+}
+
+{
+	void main() char dummy; bool arr[]; Base b; {
+		read(dummy);
+		read(arr[2]);
+		read(b.field);
+		read(b);
+	}
+}

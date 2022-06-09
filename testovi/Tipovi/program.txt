@@ -1,0 +1,12 @@
+program MJProgram
+
+class Base {
+	{
+	}
+}
+
+{
+	void main() int a; Basee b; {
+		// ...
+	}
+}

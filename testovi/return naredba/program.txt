@@ -1,0 +1,16 @@
+program MJProgram
+
+// Pokazati:
+// Funkcija koja nije void nema return iskaz
+// Tip izraza u okviru return naredbe nije isti kao i tip povratne vrednosti funkcije
+// return se nalazi van funkcije
+
+{
+	int foo() {
+		
+	}
+	
+	void main() {
+		// ...
+	}
+}
